@@ -11,7 +11,7 @@ const useEscape = (className, callback) => {
         if (e.keyCode === 27) callback();
     };
 
-    const containerRef = useRef();
+    const containerRef = useRef(null);
     useEffect(() => {
         if (!containerRef) return;
         const el = containerRef.current;

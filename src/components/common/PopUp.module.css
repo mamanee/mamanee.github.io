@@ -1,0 +1,12 @@
+.wrapper {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, .35);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 2000;
+}

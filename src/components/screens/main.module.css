@@ -197,8 +197,7 @@
 .itemWrapper {
     background-color: white;
     padding: 8px 16px;
-    margin-top: 8px;
-    border-radius: 4px;
+    border-bottom: 2px solid #ececec;
     font-size: 14pt;
     font-weight: 500;
     display: flex;
@@ -219,12 +218,29 @@
 
 }
 .dayView {
-    background-color: #ececec;
+    background-color: white;
     width: calc(100% - 24px);
+    height: max-content;
     max-width: 360px;
     border-radius: 8px;
-    padding: 8px;
+    border: solid #ececec 2px;
     box-sizing: border-box;
+    overflow: hidden;
+}
+.dayViewArea {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+.noData {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    color: #808080;
+    padding: 32px;
 }
 .historyTitle {
     font-size: 16pt;

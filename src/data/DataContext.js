@@ -41,8 +41,10 @@ const getDays = (date, interval = DAY) => { //date: "DD-MM-YYY"
 const contextShape = {
     days: {},
     getTotal: (interval = ALL, type = INCOME, date = '01-01-2021')=>0,
-    addTransaction: (day = '01-01-2021', type = INCOME, amount = 0, comment = '')=>{},
-    getHistory: (day = '01-01-2021') => []
+    addTransaction: (type = INCOME, amount = 0, comment = '', day = '01-01-2021')=>{},
+    getHistory: (day = '01-01-2021') => [],
+    getDaysOfRange: (day = moment().format(FORMAT), range = WEEK) => [],
+    isFetching: false,
 }
 export const DataContext = React.createContext(contextShape)
 
@@ -80,6 +82,7 @@ export const useDataContext = () => {
                 return accum
         }, 0)
     }
+    const getDaysOfRange = (date=moment().format(FORMAT), range=WEEK) => getDays(date, range)
     const addTransaction = async (type = INCOME, amount = 0, comment = '', day=moment().format(FORMAT))=>{
         const newDays = {
             ...days,
@@ -145,5 +148,5 @@ export const useDataContext = () => {
         }
         setFetching(false)
     }
-    return {days, addTransaction, getTotal, deleteTransaction, getHistory, fetch, isFetching}
+    return {days, addTransaction, getTotal, deleteTransaction, getHistory, fetch, isFetching, getDaysOfRange}
 }

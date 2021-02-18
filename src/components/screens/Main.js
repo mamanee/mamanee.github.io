@@ -8,6 +8,7 @@ import moment from "moment";
 import {useSpring, animated} from 'react-spring'
 import useEscape from "../../utils/useEscape";
 import preloader from '../../assets/preloader.svg'
+import WeekView from "../WeekView/WeekView";
 
 const Loading = () => {
     return <div className={styles.loading}><img src={preloader} width={20} height={20}/></div>
@@ -52,14 +53,14 @@ const Header = () => {
     </div>
 }
 
-const AddCard = ({onClose=()=>{}}) => {
+export const AddCard = ({onClose=()=>{}, date=moment().format(FORMAT)}) => {
     const input = useRef()
     const [value, setValue] = useState('')
     const {addTransaction} = useContext(DataContext)
 
     const onAddEarned = () => {
         if (value != '' && value != 0) {
-            addTransaction(INCOME, parseFloat(value.toString()))
+            addTransaction(INCOME, parseFloat(value.toString()), '', date)
             onClose()
         }
         setValue('')
@@ -67,7 +68,7 @@ const AddCard = ({onClose=()=>{}}) => {
 
     const onAddSpent = () => {
         if (value != '' && value != 0) {
-            addTransaction(SPENT, parseFloat(value.toString()))
+            addTransaction(SPENT, parseFloat(value.toString()), '', date)
             onClose()
         }
         setValue('')
@@ -111,28 +112,39 @@ const Button = (props) => {
     </button>
 }
 
-const MonthOverview = ({getTotal}) => {
-    const [mode, setMode] = useState(WEEK)
+export const MonthOverview = ({getTotal, fixedMode=false, day}) => {
+    const [mode, setMode] = useState(fixedMode === false ? WEEK : fixedMode)
     const [values, setValues] = useState({earned: 0, spent: 0, profit: 0})
     const {days} = useContext(DataContext)
 
 
-
+    const _date = day || moment().format(FORMAT)
     useEffect(()=>{
         setValues({
-            earned: getTotal(mode, INCOME, moment().format(FORMAT)),
-            spent: getTotal(mode, SPENT, moment().format(FORMAT)),
-            profit: getTotal(mode, PROFIT, moment().format(FORMAT)),
+            earned: getTotal(mode, INCOME, _date),
+            spent: getTotal(mode, SPENT, _date),
+            profit: getTotal(mode, PROFIT, _date),
         })
         console.log('render')
     },[mode, days])
 
-    return <><div className={styles.modeSelector}>
-        <Button className={styles.mode} style={{backgroundColor: mode == DAY ? '#00AFB9' : '#efefef', color: mode == DAY ? 'white' : 'black'}} onClick={()=>setMode(DAY)}>Day</Button>
-        <Button className={styles.mode} style={{backgroundColor: mode == WEEK ? '#00AFB9' : '#efefef', color: mode == WEEK ? 'white' : 'black'}} onClick={()=>setMode(WEEK)}>Week</Button>
-        <Button className={styles.mode} style={{backgroundColor: mode == MONTH ? '#00AFB9' : '#efefef', color: mode == MONTH ? 'white' : 'black'}} onClick={()=>setMode(MONTH)}>Month</Button>
-        <Button className={styles.mode} style={{backgroundColor: mode == YEAR ? '#00AFB9' : '#efefef', color: mode == YEAR ? 'white' : 'black'}} onClick={()=>setMode(YEAR)}>Year</Button>
-    </div>
+    return <>{fixedMode === false && <div className={styles.modeSelector}>
+        <Button className={styles.mode}
+                style={{backgroundColor: mode === DAY ? '#00AFB9' : '#efefef', color: mode === DAY ? 'white' : 'black'}}
+                onClick={() => setMode(DAY)}>Day</Button>
+        <Button className={styles.mode} style={{
+            backgroundColor: mode === WEEK ? '#00AFB9' : '#efefef',
+            color: mode === WEEK ? 'white' : 'black'
+        }} onClick={() => setMode(WEEK)}>Week</Button>
+        <Button className={styles.mode} style={{
+            backgroundColor: mode === MONTH ? '#00AFB9' : '#efefef',
+            color: mode === MONTH ? 'white' : 'black'
+        }} onClick={() => setMode(MONTH)}>Month</Button>
+        <Button className={styles.mode} style={{
+            backgroundColor: mode === YEAR ? '#00AFB9' : '#efefef',
+            color: mode === YEAR ? 'white' : 'black'
+        }} onClick={() => setMode(YEAR)}>Year</Button>
+    </div>}
     <div className={styles.monthWrapper}>
         <div className={styles.monthItem+' '+styles.monthIncome}>
             <div className={styles.monthLabel}>Earned</div>
@@ -147,25 +159,33 @@ const MonthOverview = ({getTotal}) => {
             <div className={styles.monthAmount}>{rub(values.profit)}</div>
         </div>
     </div>
-        <DayView />
+        {mode === DAY && <DayView day={day}/>}
+        {mode === WEEK && <WeekView day={day}/>}
     </>
 }
 
-const DayView = ({day = moment().format(FORMAT)}) => {
+export const DayView = ({day = moment().format(FORMAT)}) => {
     const {getHistory, days, deleteTransaction} = useContext(DataContext)
     const [history, setHistory] = useState([])
     useEffect(()=>{
         setHistory(getHistory(day))
     }, [day, days])
 
-    if (history.length == 0) return null
-    return <div className={styles.dayView}>
+    if (history.length === 0) return <div className={styles.noData}>
+        No data tracked for this day.
+    </div>
+    return <div className={styles.dayViewArea}>
+
+    <div className={styles.dayView}>
+{/*
         <div className={styles.historyTitle}>{day === moment().format(FORMAT) ? 'Today\'s history:' : 'History of '+day.replaceAll('-','.')}</div>
-        {history.map(({type, amount, comment}, index)=><HistoryItem comment={comment} amount={amount} type={type} id={index} key={index} onDelete={()=>{deleteTransaction(day, index)}}/>)}
+*/}
+        {history.map(({type, amount, comment}, index)=><HistoryItem comment={comment} amount={amount} type={type} id={index} key={index} onDelete={()=>{deleteTransaction(day, index)}}  isLast={index == history.length-1}/>)}
+    </div>
     </div>
 }
-const HistoryItem = ({type = INCOME, amount = 0, comment = '', onDelete=()=>{}}) => {
-    return <div className={styles.itemWrapper}>
+const HistoryItem = ({type = INCOME, amount = 0, comment = '', onDelete=()=>{}, isLast = false}) => {
+    return <div className={styles.itemWrapper} style={isLast ? {borderBottom: 'none'} : {}}>
         <div className={styles.itemValue} style={type === INCOME ? {color: '#00AFB9'} : {color: '#F07167'}}>{['+ ','- '][type]}{rub(amount)}</div>
         <div className={styles.itemButtons} onClick={onDelete}><i className={'fas fa-times'}/></div>
         {comment && <div className={styles.itemComment}>{comment}</div>}
